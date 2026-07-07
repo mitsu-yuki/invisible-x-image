@@ -1,149 +1,154 @@
-# invisible-x-image 要件書
+# invisible-x-image Requirements
 
-x.com(旧 Twitter)上の画像・動画をプレースホルダーに置き換える Google Chrome 拡張機能。
+[日本語](./requirements-ja.md)
 
-## 1. 背景・目的
+A Google Chrome extension that replaces images and videos on x.com (formerly Twitter) with placeholders.
 
-x.com のタイムラインには画像・動画付きのポストが多く流れてくる。見たくないメディアが視界に入るのを防ぐため、メディア部分をワンクリックで表示可能なプレースホルダーに置き換える拡張機能を提供する。
+## 1. Background and purpose
 
-## 2. 機能要件
+The x.com timeline frequently shows posts with images and video. To prevent unwanted media from entering the user's view, this extension replaces media with a placeholder that can be revealed with a single click.
 
-### 2.1 メディアのフォールディング(折りたたみ)
+## 2. Functional requirements
 
-長文ポストの「さらに表示」と同様の折りたたみ UI でメディアを隠す。
+### 2.1 Media folding
 
-- **FR-1**: ポスト(`article[data-testid="tweet"]`)内に含まれる画像を折りたたむ(メディア領域を潰して非表示にする)こと。
-- **FR-2**: ポスト内に含まれる動画(GIF 含む)を同様に折りたたむこと。
-- **FR-3**: メディアを折りたたんだポストには、**本文の右下**に「メディアを表示」というリンクテキストを **1 ポストにつき 1 つ**表示すること。ラベルは長文折りたたみ(「さらに表示」)と区別できるよう「メディアを表示」で固定とする。本文(`div[data-testid="tweetText"]`)がないメディアのみのポストでは、メディアがあった位置に同リンクを右寄せで表示する。
-- **FR-4**: リンクをクリックすると、**そのポストの折りたたまれた全メディアを直接表示**すること(1 クリック、プレースホルダー等の中間状態を挟まない)。表示後リンクは消える。ページをリロードすると再び折りたたまれてよい。
-- **FR-5**: 折りたたみ中はメディア領域の高さを詰め、ポストをコンパクトに表示すること(意図的なレイアウト縮小)。展開時は元のレイアウトに戻ること。
-- **FR-6**: リンクのクリックがポスト詳細ページへの遷移など親要素のイベントを発火させないこと(`stopPropagation` / `preventDefault`)。
-- **FR-7**: 折りたたみ中の動画は再生を停止(`video.pause()` + `muted`)し、音声が流れないようにすること。展開後の再生開始はユーザー操作に委ねる。
+Media is hidden using a folding UI similar to the "Show more" used for long post text.
 
-### 2.2 対象範囲
+- **FR-1**: Images contained within a post (`article[data-testid="tweet"]`) must be folded (the media area is collapsed and hidden).
+- **FR-2**: Videos (including GIFs) contained within a post must be folded the same way.
+- **FR-3**: A post with folded media must show exactly **one** "Show media" link text at the **bottom-right of the post text**. The label is fixed as "Show media" so it's distinguishable from the long-text fold ("Show more"). For media-only posts with no post text (`div[data-testid="tweetText"]`), the link is shown right-aligned where the media used to be.
+- **FR-4**: Clicking the link must **directly reveal all of that post's folded media** (a single click, with no intermediate state such as a placeholder). The link disappears after revealing. Reloading the page may fold the media again.
+- **FR-5**: While folded, the media area's height must be collapsed so the post displays compactly (an intentional layout reduction). The original layout must be restored when expanded.
+- **FR-6**: Clicking the link must not trigger parent element events such as navigating to the post detail page (`stopPropagation` / `preventDefault`).
+- **FR-7**: Folded videos must stop playback (`video.pause()` + `muted`) so no audio plays. Resuming playback after expansion is left to the user.
 
-- **FR-8**: x.com 全体のページを対象とするが、**折りたたむのはポスト(`article[data-testid="tweet"]`)内のメディアのみ**とする:
-  - ホームタイムライン(「おすすめ」「フォロー中」)
-  - ポスト詳細ページ(リプライ含む)
-  - プロフィールページのタイムライン
-  - 検索結果、トレンド、リスト、ブックマーク、通知
-  - 引用ポスト内のメディア(親ポストと同一 article 内のため、親ポストのリンクでまとめて展開される)
-- **FR-9**: `https://x.com/*` と `https://twitter.com/*` の両ドメインで動作すること。
-- **対象外**: ポスト外に単体で現れるメディア(プロフィールの「メディア」タブのグリッドなど。メディアを見に行く意図が明確な場所のため隠さない)、ユーザーアイコン、バナー画像、絵文字、リンクカード(OGP)のサムネイル、DM 内のメディア。
+### 2.2 Scope
 
-### 2.3 動的コンテンツへの追従
+- **FR-8**: The extension targets all of x.com, but **only folds media inside a post** (`article[data-testid="tweet"]`):
+  - Home timeline ("For you" / "Following")
+  - Post detail pages (including replies)
+  - Profile page timelines
+  - Search results, trends, lists, bookmarks, notifications
+  - Media inside quoted posts (folded together with the parent post's link, since it lives in the same `article`)
+- **FR-9**: Must work on both the `https://x.com/*` and `https://twitter.com/*` domains.
+- **Out of scope**: Media that appears standalone outside of a post (e.g. the grid on a profile's "Media" tab, where the intent to view media is clear so it isn't hidden), user avatars, banner images, emoji, link card (OGP) thumbnails, and media in DMs.
 
-- **FR-10**: X は仮想スクロールの SPA であり、ポストは動的に DOM へ追加・再利用される。`MutationObserver`(`document.body`、`childList` + `subtree`)で追加ノードを監視し、新規メディアを即座にプレースホルダー化すること。
-- **FR-11**: ページ内遷移(pushState による SPA 遷移)後も継続して動作すること。Observer は body 全体を監視するため遷移検知の特別処理は不要だが、遷移で DOM が丸ごと入れ替わっても検出漏れがないこと。
-- **FR-12**: 初回ロード時(content script 実行時点)に既に存在するメディアも全走査して処理すること。
-- **FR-13**: 同一要素を二重処理しないこと。処理済み要素には `data-ixi-processed` 属性を付与して判定する。
+### 2.3 Following dynamic content
 
-### 2.4 設定(ポップアップ UI)
+- **FR-10**: X is a virtual-scrolling SPA, and posts are added to and reused within the DOM dynamically. A `MutationObserver` (on `document.body`, with `childList` + `subtree`) must watch for added nodes and immediately turn new media into a placeholder.
+- **FR-11**: Must keep working after in-page navigation (SPA navigation via `pushState`). Because the observer watches the entire body, no special navigation-detection logic is needed, but nothing may be missed even when navigation replaces the DOM wholesale.
+- **FR-12**: Media already present at initial load (when the content script runs) must also be scanned and processed.
+- **FR-13**: The same element must never be processed twice. Processed elements are marked with a `data-ixi-processed` attribute for this check.
 
-- **FR-14**: ツールバーの拡張アイコンクリックでポップアップを表示すること。
-- **FR-15**: ポップアップに「画像を隠す」「動画を隠す」の 2 つのトグル(checkbox)を設けること。UI は日本語。
-- **FR-16**: 設定は `chrome.storage.sync` に保存すること。キーとデフォルト値:
+### 2.4 Settings (popup UI)
+
+- **FR-14**: Clicking the toolbar extension icon must show a popup.
+- **FR-15**: The popup must provide two toggles (checkboxes): "Hide images" and "Hide videos". The UI is in English.
+- **FR-16**: Settings must be stored in `chrome.storage.sync`. Keys and defaults:
 
   ```ts
   interface Settings {
-    hideImages: boolean; // デフォルト true
-    hideVideos: boolean; // デフォルト true
+    hideImages: boolean; // default true
+    hideVideos: boolean; // default true
   }
   ```
 
-- **FR-17**: 設定変更は**リロードなしで即時反映**されること。content script は `chrome.storage.onChanged` を購読し:
-  - OFF になった種別 → 該当メディアの折りたたみを全展開(そのポストに折りたたみが残らなければリンクも除去)
-  - ON になった種別 → ページを再走査して折りたたみ(手動で展開済みのものも再度折りたたむ)
-- ポスト内に画像と動画が混在する場合、`hideImages` / `hideVideos` それぞれの設定に従って種別ごとに折りたたむ。折りたたみが 1 つでもあればリンクは 1 つ表示し、クリックでそのポストの折りたたみ分をすべて展開する。
+- **FR-17**: Setting changes must take effect **immediately, without a reload**. The content script subscribes to `chrome.storage.onChanged`:
+  - When a category is turned OFF → fully expand the folded media of that kind (and remove the link too, if no folding remains on that post)
+  - When a category is turned ON → rescan the page and fold again (including media that had been manually revealed)
+- When a post has a mix of images and videos, each kind is folded according to its own `hideImages` / `hideVideos` setting. If the post has at least one folded item, a single link is shown, and clicking it expands everything folded in that post.
 
-## 3. DOM セレクタ仕様
+## 3. DOM selector specification
 
-X のクラス名は難読化されており不安定なため、**`data-testid` 属性のみ**をセレクタに使う。ポストのルートは `article[data-testid="tweet"]`。
+X's class names are obfuscated and unstable, so selectors must rely **only on `data-testid` attributes**. The root of a post is `article[data-testid="tweet"]`.
 
-| 対象 | セレクタ | 備考 |
+| Target | Selector | Notes |
 |---|---|---|
-| ポスト | `article[data-testid="tweet"]` | 折りたたみのグルーピング単位。この外のメディアは対象外 |
-| 本文 | `div[data-testid="tweetText"]` | 「メディアを表示」リンクの挿入位置の基準 |
-| 画像 | `div[data-testid="tweetPhoto"]` | ポスト内画像のコンテナ。複数枚レイアウトでも 1 枚ごとに存在 |
-| 動画 | `div[data-testid="videoComponent"]` | 動画・GIF プレイヤーのコンテナ |
-| 動画(補助) | `div[data-testid="videoPlayer"]` | videoComponent の外側に存在する場合がある |
+| Post | `article[data-testid="tweet"]` | The grouping unit for folding. Media outside this is out of scope |
+| Post text | `div[data-testid="tweetText"]` | Reference point for inserting the "Show media" link |
+| Image | `div[data-testid="tweetPhoto"]` | Container for an image in a post. Present once per image even in multi-image layouts |
+| Video | `div[data-testid="videoComponent"]` | Container for the video/GIF player |
+| Video (auxiliary) | `div[data-testid="videoPlayer"]` | May exist outside of `videoComponent` |
 
-注意事項:
+Notes:
 
-- `tweetPhoto` は**動画のサムネイルにも使われる**。コンテナ内(または祖先の videoPlayer 配下)に `video` 要素か `videoComponent` が存在する場合は「動画」として扱い、`hideVideos` 設定に従うこと。
-- `article[data-testid="tweet"]` の外に現れる同 testid のメディア(プロフィールのメディア欄グリッドなど)は処理しない。
-- セレクタは 1 箇所(定数モジュール)に集約し、X 側の DOM 変更時に追従しやすくすること。
+- `tweetPhoto` is **also used for video thumbnails**. If a `video` element or `videoComponent` exists inside the container (or under an ancestor `videoPlayer`), it must be treated as "video" and follow the `hideVideos` setting.
+- Media with the same `data-testid` appearing outside `article[data-testid="tweet"]` (e.g. the grid on a profile's media tab) must not be processed.
+- Selectors must be centralized in a single constants module so they're easy to keep in sync with changes to X's DOM.
 
-## 4. フォールディング仕様
+## 4. Folding specification
 
-### 折りたたみ
+### Folding
 
-- 対象メディアコンテナに CSS クラスを付与して `display: none !important` で領域ごと潰す(高さを詰めてポストをコンパクトにするのが意図)。
-- **折りたたみ対象の引き上げ(fold root)**: X のメディア領域はアスペクト比確保用の空サイザー(`padding-bottom` 指定の空 div)を持つラッパーで包まれており、最内のメディアコンテナだけを隠すと空白領域が残る。そのため、メディアコンテナから祖先方向に「メディアしか含まないラッパー」を辿り、その最上位(fold root)を折りたたむ:
-  - 親要素の**すべての子**が「メディアコンテナを含む要素」または「空サイザー(テキストも img/video/svg/iframe も持たない要素)」である間、親へ登る
-  - ポスト(`article`)自身には到達しない。条件を満たさない親(本文・ユーザー名などを含む階層)が現れたら停止し、その時点の要素を折りたたむ
-  - 複数メディア(画像グリッド等)は同一の fold root に集約されてよい(1 要素の折りたたみで全体が消える)
-  - fold root 配下に「隠すべきでない種別」のメディアが含まれる場合(画像・動画混在ポストで片方の設定のみ ON など)は、引き上げず個々のメディアコンテナを折りたたむ(空白が残ることは許容する)
-- 折りたたみはポスト(`article[data-testid="tweet"]`)単位でグルーピングし、コンテナ属性で管理する:
-  - `data-ixi-processed`: 判定済み(二重処理防止)
+- A CSS class is applied to the target media container to collapse the whole area with `display: none !important` (the intent is to shrink the height and keep the post compact).
+- **Raising the fold target (fold root)**: X's media areas are wrapped in a wrapper that includes an empty sizer div (using `padding-bottom`) to preserve aspect ratio; hiding only the innermost media container would leave that blank area behind. So, starting from the media container, walk up through ancestor "wrapper containing only media" elements to the topmost one (the fold root), and fold that instead:
+  - Keep climbing to the parent as long as **every child** of that parent is either "an element containing a media container" or "an empty sizer (an element with no text and no img/video/svg/iframe descendants)"
+  - Never reach the post (`article`) itself. Stop and fold the current element as soon as a parent is found that doesn't meet the condition (i.e. one containing post text, a username, etc.)
+  - Multiple media items (e.g. an image grid) may share the same fold root (folding one element hides all of them)
+  - If the fold root candidate contains media of a "kind that shouldn't be hidden" (e.g. a post with both images and videos where only one setting is ON), don't raise the target — fold the individual media containers instead (leaving some blank space is acceptable)
+- Folding is grouped per post (`article[data-testid="tweet"]`) and tracked via container attributes:
+  - `data-ixi-processed`: already evaluated (prevents double processing)
   - `data-ixi-kind`: `image` / `video`
-  - `data-ixi-revealed`: 展開済み(再走査時に再折りたたみしない。設定 OFF→ON でリセットして再度折りたたむ)
+  - `data-ixi-revealed`: already revealed (not re-folded on rescan; reset and re-folded when the setting goes OFF→ON)
 
-### 「メディアを表示」リンク
+### The "Show media" link
 
-- 1 ポストにつき 1 要素。折りたたんだメディアが 1 つでもあるポストにのみ挿入する。
-- 挿入位置: 本文 `div[data-testid="tweetText"]` の**直後**に右寄せ(`display: block; text-align: right`)で配置し、「本文の右下」に見えるようにする。本文がないポストでは最初の折りたたみコンテナの直前に同様に配置する。
-- スタイル: X のリンク色(`#1d9bf0`)のテキストリンク。ホバーで下線。`cursor: pointer`。
-- クリックで `stopPropagation` / `preventDefault` し、そのポスト内の折りたたみメディアをすべて展開してリンク自身を除去する。
-- ポストの再走査時にリンクを重複挿入しないこと(リンク要素にも識別用クラス/属性を付ける)。
+- One element per post, inserted only into posts with at least one folded media item.
+- Insertion point: placed right-aligned (`display: block; text-align: right`) immediately after the post text (`div[data-testid="tweetText"]`), so it appears at the "bottom-right of the post text". For posts with no post text, it's placed the same way immediately before the first folded container.
+- Style: a text link in X's link color (`#1d9bf0`), underlined on hover, `cursor: pointer`.
+- On click, calls `stopPropagation` / `preventDefault`, reveals all folded media in that post, and removes the link itself.
+- Must not be inserted twice when a post is rescanned (the link element also carries an identifying class/attribute for this check).
 
-## 5. 非機能要件
+## 5. Non-functional requirements
 
-- **NFR-1**: Manifest V3 準拠。
-- **NFR-2**: 権限は最小限にすること: `storage` のみ。host permissions は `https://x.com/*`, `https://twitter.com/*`。
-- **NFR-3**: `remote code` なし、外部通信なし。
-- **NFR-4**: MutationObserver のコールバックは軽量に保つこと(mutation ごとの全ページ `querySelectorAll` を避け、追加ノード配下のみ走査する。ただし実装が過度に複雑になる場合は、`requestAnimationFrame` / アイドルデバウンスでの全走査バッチ処理でも可)。
-- **NFR-5**: TypeScript の型チェック(`tsc --noEmit` 相当)とビルドがエラーなしで通ること。
+- **NFR-1**: Must comply with Manifest V3.
+- **NFR-2**: Permissions must be minimal: `storage` only. Host permissions: `https://x.com/*`, `https://twitter.com/*`.
+- **NFR-3**: No remote code, no external communication.
+- **NFR-4**: `MutationObserver` callbacks must stay lightweight (avoid a full-page `querySelectorAll` on every mutation; scan only under the added nodes. Batched full-page scans via `requestAnimationFrame` / idle debouncing are also acceptable if the alternative becomes overly complex).
+- **NFR-5**: TypeScript type checking (equivalent to `tsc --noEmit`) and the build must pass with no errors.
 
-## 6. 技術構成
+## 6. Technical stack
 
-- フレームワーク: **WXT**(Manifest V3、manifest 自動生成)
-- 言語: TypeScript(UI フレームワークなし。ポップアップは素の HTML + TS)
-- パッケージ管理: pnpm(Node・pnpm・claude は mise で管理し、`mise.toml` でバージョンを固定する)
+- Framework: **WXT** (Manifest V3, manifest auto-generation)
+- Language: TypeScript (no UI framework; the popup is plain HTML + TS)
+- Package management: pnpm (Node, pnpm, and claude are managed via mise, with versions pinned in `mise.toml`)
 
-### ディレクトリ構成
+### Directory structure
 
 ```
-├── docs/requirements.md   # 本書
-├── wxt.config.ts          # manifest 定義
-├── vitest.config.ts       # テスト設定(WxtVitest + happy-dom)
+├── docs/
+│   ├── requirements.md    # This document
+│   └── requirements-ja.md # Japanese version
+├── wxt.config.ts          # manifest definition
+├── vitest.config.ts       # Test config (WxtVitest + happy-dom)
 ├── entrypoints/
 │   ├── content/
-│   │   ├── index.ts       # content script エントリポイント(設定取得・Observer 配線)
-│   │   ├── hider.ts       # プレースホルダー化ロジック本体(*.test.ts で検証)
-│   │   └── style.css      # プレースホルダーのスタイル
+│   │   ├── index.ts       # Content script entry point (loads settings, wires up the observer)
+│   │   ├── hider.ts       # Core placeholder logic (verified in *.test.ts)
+│   │   └── style.css      # Placeholder styles
 │   └── popup/
 │       ├── index.html
 │       └── main.ts
 ├── utils/
-│   ├── selectors.ts       # DOM セレクタ定数
-│   └── settings.ts        # Settings 型・読み書き・変更購読
+│   ├── selectors.ts       # DOM selector constants
+│   └── settings.ts        # Settings type, read/write, change subscription
 ├── package.json
-└── README.md              # ビルド・インストール手順
+├── README.md              # Build and install instructions (English)
+└── README-ja.md           # Build and install instructions (Japanese)
 ```
 
-### manifest 要件
+### Manifest requirements
 
 - `name`: "Invisible X Image"
-- `description`: 日本語で機能説明
-- `default_locale` は不要(ポップアップ直書きでよい)
+- `description`: an English description of the extension's functionality
+- `default_locale` is not required (the popup's text can be written directly)
 - content script: `matches: ["https://x.com/*", "https://twitter.com/*"]`, `run_at: "document_idle"`
 
-## 7. 受け入れ基準
+## 7. Acceptance criteria
 
-1. `pnpm run build` が成功し、`.output/chrome-mv3/` に読み込み可能な拡張機能一式が生成される。
-2. `pnpm run compile`(tsc 型チェック)がエラーなしで通る。
-3. `pnpm run test`(vitest)が成功する。
-4. x.com のホームタイムラインでメディア付きポストが折りたたまれて本文右下に「メディアを表示」リンクが出て、クリックするとそのポストのメディアが 1 クリックで表示される(手動確認)。プロフィールの「メディア」タブのグリッドは折りたたまれない(手動確認)。
-5. ポップアップのトグル操作が開いているタブへリロードなしで反映される(手動確認)。
-6. スクロールで新しく読み込まれたポスト、および SPA 遷移先のページでも機能する(手動確認)。
+1. `pnpm run build` succeeds and produces a loadable extension under `.output/chrome-mv3/`.
+2. `pnpm run compile` (tsc type check) passes with no errors.
+3. `pnpm run test` (vitest) passes.
+4. On the x.com home timeline, posts with media are folded and show a "Show media" link at the bottom-right of the post text, and clicking it reveals that post's media in one click (manual verification). The grid on a profile's "Media" tab is not folded (manual verification).
+5. Toggling the popup checkboxes takes effect on the open tab without a reload (manual verification).
+6. Folding works for posts loaded by scrolling and on pages reached via SPA navigation (manual verification).

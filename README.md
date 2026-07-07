@@ -1,109 +1,116 @@
 # Invisible X Image
 
-x.com（旧 Twitter）のポスト内にある画像・動画を、長文の「さらに表示」と同様の折りたたみ UI で隠す Chrome 拡張機能（Manifest V3）です。折りたたまれたポストの本文右下に表示される「メディアを表示」リンクをクリックすると、そのポストのメディアが 1 クリックですべて表示されます。
+[日本語](./README-ja.md)
 
-詳細な仕様は [docs/requirements.md](./docs/requirements.md) を参照してください。
+A Chrome extension (Manifest V3) that hides images and videos in posts on x.com (formerly Twitter) using a folding UI similar to the "Show more" for long text. Clicking the "Show media" link that appears at the bottom-right of a folded post's text reveals all of that post's media in one click.
 
-## 開発環境
+See [docs/requirements.md](./docs/requirements.md) for the full specification.
 
-- Node.js は [mise](https://mise.jdx.dev/) で管理しています。リポジトリ直下の `mise.toml` に従い、以下でセットアップしてください。
+## Development environment
+
+- Node.js is managed via [mise](https://mise.jdx.dev/). Follow the `mise.toml` in the repository root and set up with:
 
   ```sh
   mise install
   ```
 
-- 依存パッケージのインストール:
+  With mise activated, the `pnpm` commands below can be run as-is.
+
+- Install dependencies:
 
   ```sh
-  mise exec -- pnpm install
+  pnpm install
   ```
 
-  （`postinstall` で `wxt prepare` が実行され、型情報が `.wxt/` に生成されます）
+  (`postinstall` runs `wxt prepare`, which generates type information into `.wxt/`)
 
-## ビルド手順
+## Build steps
 
-型チェック:
-
-```sh
-mise exec -- pnpm run compile
-```
-
-ユニットテスト(vitest):
+Type check:
 
 ```sh
-mise exec -- pnpm run test
+pnpm run compile
 ```
 
-本番ビルド:
+Unit tests (vitest):
 
 ```sh
-mise exec -- pnpm run build
+pnpm run test
 ```
 
-成功すると `.output/chrome-mv3/` 以下に `manifest.json` や content script、popup 一式が生成されます。
-
-配布用 zip の生成（GitHub Release 添付用など。`.output/invisible-x-image-<version>-chrome.zip` が生成されます）:
+Production build:
 
 ```sh
-mise exec -- pnpm run zip
+pnpm run build
 ```
 
-開発中に自動リロードしたい場合は次を利用できます（Chrome が自動起動します）。
+On success, `manifest.json`, the content script, and the popup are generated under `.output/chrome-mv3/`.
+
+Generate a distribution zip (e.g. for attaching to a GitHub Release; produces `.output/invisible-x-image-<version>-chrome.zip`):
 
 ```sh
-mise exec -- pnpm run dev
+pnpm run zip
 ```
 
-## Chrome への読み込み手順
+For auto-reload during development (launches Chrome automatically):
 
-1. 上記の `pnpm run build` を実行し、`.output/chrome-mv3/` を生成する。
-2. Chrome で `chrome://extensions` を開く。
-3. 右上の「デベロッパーモード」を ON にする。
-4. 「パッケージ化されていない拡張機能を読み込む」をクリックし、`.output/chrome-mv3/` ディレクトリを選択する。
-5. 拡張機能一覧に「Invisible X Image」が表示されれば読み込み完了。
+```sh
+pnpm run dev
+```
 
-コードを変更した場合は再度 `pnpm run build` を行い、`chrome://extensions` の当該拡張機能で「再読み込み」ボタンを押してください。
+## Loading into Chrome
 
-## 手動確認手順
+1. Run `pnpm run build` above to generate `.output/chrome-mv3/`.
+2. Open `chrome://extensions` in Chrome.
+3. Turn on "Developer mode" in the top right.
+4. Click "Load unpacked" and select the `.output/chrome-mv3/` directory.
+5. Confirm "Invisible X Image" appears in the extensions list.
 
-1. https://x.com （または https://twitter.com ）のホームタイムラインを開く。
-2. 画像・動画付きのポストのメディア領域が折りたたまれ、本文の右下に「メディアを表示」リンクが表示されることを確認する（画像・動画が混在するポストでもリンクは 1 つ）。
-3. リンクをクリックすると、そのポストの折りたたまれたメディアがすべて 1 クリックで表示され、リンク自身が消えることを確認する（他のポストの折りたたみは維持される）。
-4. ページをリロードすると再び折りたたまれることを確認する。
-5. 動画付きポストが折りたたまれている間、動画が再生・音声が流れていないことを確認する。
-6. スクロールしてタイムラインに新しいポストが読み込まれても、折りたたみが継続して機能することを確認する。
-7. ポスト詳細ページ・プロフィールページ・検索結果・リスト・ブックマーク・通知など、SPA 内の別ページに遷移しても折りたたみが機能することを確認する。一方、プロフィールの「メディア」タブのグリッド（ポスト外に単体で並ぶメディア）は折りたたまれないことを確認する。
-8. ツールバーの拡張機能アイコンをクリックしてポップアップを開き、「画像を隠す」「動画を隠す」のチェックボックスが現在の設定を反映していることを確認する。
-9. ポップアップのチェックボックスを OFF にすると、開いているタブ上の折りたたみがリロードなしで即座に展開され、リンクも消えることを確認する。再度 ON にすると、手動で展開済みだったものも含めて再度折りたたまれ、リンクも再表示されることを確認する。
+After changing code, run `pnpm run build` again and click "Reload" for the extension on `chrome://extensions`.
 
-## ディレクトリ構成
+## Manual verification steps
+
+1. Open the home timeline at https://x.com (or https://twitter.com).
+2. Confirm that the media area of posts with images/videos is folded, and a "Show media" link appears at the bottom-right of the post text (only one link even for posts with mixed images and videos).
+3. Confirm that clicking the link reveals all of that post's folded media in one click and the link itself disappears (other posts' folding is left intact).
+4. Confirm that reloading the page folds the media again.
+5. Confirm that while a post with video is folded, the video does not play and no audio is heard.
+6. Confirm that folding keeps working as you scroll and new posts load into the timeline.
+7. Confirm that folding works after navigating to other pages within the SPA — post detail pages, profile pages, search results, lists, bookmarks, notifications, etc. Also confirm that the grid on a profile's "Media" tab (standalone media outside of posts) is not folded.
+8. Click the extension icon in the toolbar to open the popup and confirm the "Hide images" / "Hide videos" checkboxes reflect the current settings.
+9. Turn a checkbox off in the popup and confirm the corresponding folding on the open tab expands immediately without a reload, and the link disappears. Turn it back on and confirm folding is reapplied — including to media that had been manually revealed — and the link reappears.
+
+## Directory structure
 
 ```
-├── docs/requirements.md   # 要件書
-├── wxt.config.ts          # manifest 定義
-├── vitest.config.ts       # テスト設定（WxtVitest + happy-dom）
+├── docs/
+│   ├── requirements.md    # Requirements document (English)
+│   └── requirements-ja.md # Requirements document (Japanese)
+├── wxt.config.ts          # manifest definition
+├── vitest.config.ts       # Test config (WxtVitest + happy-dom)
 ├── entrypoints/
 │   ├── content/
-│   │   ├── index.ts       # content script エントリポイント（設定取得・Observer 配線）
-│   │   ├── hider.ts       # フォールディング(折りたたみ)ロジック本体
+│   │   ├── index.ts       # Content script entry point (loads settings, wires up the observer)
+│   │   ├── hider.ts       # Core folding logic
 │   │   ├── hider.test.ts
-│   │   └── style.css      # 折りたたみ・「メディアを表示」リンクのスタイル
+│   │   └── style.css      # Styles for folding and the "Show media" link
 │   └── popup/
 │       ├── index.html
 │       └── main.ts
 ├── utils/
-│   ├── selectors.ts       # DOM セレクタ定数
+│   ├── selectors.ts       # DOM selector constants
 │   ├── selectors.test.ts
-│   ├── settings.ts        # Settings 型・読み書き・変更購読
+│   ├── settings.ts        # Settings type, read/write, change subscription
 │   └── settings.test.ts
 ├── package.json
-├── pnpm-workspace.yaml    # pnpm 設定（依存のビルドスクリプト許可）
-└── README.md
+├── pnpm-workspace.yaml    # pnpm config (allows dependency build scripts)
+├── README.md              # English
+└── README-ja.md           # Japanese
 ```
 
-## 権限
+## Permissions
 
-- `storage`（設定の保存のみ）
+- `storage` (used only to persist settings)
 - host permissions: `https://x.com/*`, `https://twitter.com/*`
 
-外部通信・リモートコードの読み込みは一切行いません。
+No external communication and no remote code loading of any kind.
