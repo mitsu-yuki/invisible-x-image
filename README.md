@@ -42,6 +42,12 @@ mise exec -- pnpm run build
 
 成功すると `.output/chrome-mv3/` 以下に `manifest.json` や content script、popup 一式が生成されます。
 
+配布用 zip の生成（GitHub Release 添付用など。`.output/invisible-x-image-<version>-chrome.zip` が生成されます）:
+
+```sh
+mise exec -- pnpm run zip
+```
+
 開発中に自動リロードしたい場合は次を利用できます（Chrome が自動起動します）。
 
 ```sh
