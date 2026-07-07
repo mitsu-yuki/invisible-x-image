@@ -98,9 +98,11 @@ X のクラス名は難読化されており不安定なため、**`data-testid`
 ```
 ├── docs/requirements.md   # 本書
 ├── wxt.config.ts          # manifest 定義
+├── vitest.config.ts       # テスト設定(WxtVitest + happy-dom)
 ├── entrypoints/
 │   ├── content/
-│   │   ├── index.ts       # content script(検出・プレースホルダー化・設定購読)
+│   │   ├── index.ts       # content script エントリポイント(設定取得・Observer 配線)
+│   │   ├── hider.ts       # プレースホルダー化ロジック本体(*.test.ts で検証)
 │   │   └── style.css      # プレースホルダーのスタイル
 │   └── popup/
 │       ├── index.html
@@ -123,6 +125,7 @@ X のクラス名は難読化されており不安定なため、**`data-testid`
 
 1. `pnpm run build` が成功し、`.output/chrome-mv3/` に読み込み可能な拡張機能一式が生成される。
 2. `pnpm run compile`(tsc 型チェック)がエラーなしで通る。
-3. x.com のホームタイムラインで画像・動画がプレースホルダーになり、ボタンクリックで個別に表示できる(手動確認)。
-4. ポップアップのトグル操作が開いているタブへリロードなしで反映される(手動確認)。
-5. スクロールで新しく読み込まれたポスト、および SPA 遷移先のページでも機能する(手動確認)。
+3. `pnpm run test`(vitest)が成功する。
+4. x.com のホームタイムラインで画像・動画がプレースホルダーになり、ボタンクリックで個別に表示できる(手動確認)。
+5. ポップアップのトグル操作が開いているタブへリロードなしで反映される(手動確認)。
+6. スクロールで新しく読み込まれたポスト、および SPA 遷移先のページでも機能する(手動確認)。
