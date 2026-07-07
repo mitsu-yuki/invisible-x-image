@@ -1,6 +1,6 @@
 {
   "name": "invisible-x-image",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Chrome extension that replaces images and videos on x.com with placeholders",
   "private": true,
   "license": "(MIT OR Beerware)",
