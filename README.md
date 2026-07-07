@@ -4,9 +4,18 @@
 
 A Chrome extension (Manifest V3) that hides images and videos in posts on x.com (formerly Twitter) using a folding UI similar to the "Show more" for long text. Clicking the "Show media" link that appears at the bottom-right of a folded post's text reveals all of that post's media in one click.
 
-![Before and after: the media in a post is folded away and replaced with a "Show media" link](./docs/images/before-after.png) The UI switches between English and Japanese depending on the browser's language setting (via `chrome.i18n`).
+![Before and after: the media in a post is folded away and replaced with a "Show media" link](./docs/images/before-after.png)
+
+The UI switches between English and Japanese depending on the browser's language setting (via `chrome.i18n`).
 
 See [docs/requirements.md](./docs/requirements.md) for the full specification.
+
+## Installation
+
+1. Download the latest `invisible-x-image-<version>-chrome.zip` from the [Releases page](https://github.com/mitsu-yuki/invisible-x-image/releases) and unzip it.
+2. Open `chrome://extensions` in Chrome and turn on "Developer mode" in the top right.
+3. Click "Load unpacked" and select the unzipped folder.
+4. Confirm "Invisible X Image" appears in the extensions list.
 
 ## Development environment
 
@@ -60,7 +69,9 @@ For auto-reload during development (launches Chrome automatically):
 pnpm run dev
 ```
 
-## Loading into Chrome
+## Loading into Chrome (for local development builds)
+
+If you just want to use the extension, see [Installation](#installation) above instead. To load a build produced from source:
 
 1. Run `pnpm run build` above to generate `.output/chrome-mv3/`.
 2. Open `chrome://extensions` in Chrome.
