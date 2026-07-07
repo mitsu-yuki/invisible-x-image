@@ -1,0 +1,18 @@
+{
+  "name": "invisible-x-image",
+  "version": "1.0.0",
+  "description": "x.com 上の画像・動画をプレースホルダーに置き換える Chrome 拡張機能",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.10.0",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "postinstall": "wxt prepare",
+    "compile": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "wxt": "0.20.27"
+  }
+}
