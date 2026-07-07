@@ -2,7 +2,9 @@
 
 [日本語](./README-ja.md)
 
-A Chrome extension (Manifest V3) that hides images and videos in posts on x.com (formerly Twitter) using a folding UI similar to the "Show more" for long text. Clicking the "Show media" link that appears at the bottom-right of a folded post's text reveals all of that post's media in one click. The UI switches between English and Japanese depending on the browser's language setting (via `chrome.i18n`).
+A Chrome extension (Manifest V3) that hides images and videos in posts on x.com (formerly Twitter) using a folding UI similar to the "Show more" for long text. Clicking the "Show media" link that appears at the bottom-right of a folded post's text reveals all of that post's media in one click.
+
+![Before and after: the media in a post is folded away and replaced with a "Show media" link](./docs/images/before-after.png) The UI switches between English and Japanese depending on the browser's language setting (via `chrome.i18n`).
 
 See [docs/requirements.md](./docs/requirements.md) for the full specification.
 

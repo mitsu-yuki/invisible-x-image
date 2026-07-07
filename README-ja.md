@@ -4,6 +4,8 @@
 
 x.com（旧 Twitter）のポスト内にある画像・動画を、長文の「さらに表示」と同様の折りたたみ UI で隠す Chrome 拡張機能（Manifest V3）です。折りたたまれたポストの本文右下に表示される「メディアを表示」リンクをクリックすると、そのポストのメディアが 1 クリックですべて表示されます。UI はブラウザの言語設定に応じて英語/日本語が切り替わります(`chrome.i18n` によるローカライズ)。
 
+![Before/After: ポスト内のメディアが折りたたまれ「Show media」リンクに置き換わる](./docs/images/before-after.png)
+
 詳細な仕様は [docs/requirements-ja.md](./docs/requirements-ja.md) を参照してください。
 
 ## 開発環境
