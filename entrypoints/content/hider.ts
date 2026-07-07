@@ -168,7 +168,7 @@ export function createMediaHider(getSettings: () => Settings) {
     const link = document.createElement("a");
     link.href = "#";
     link.className = REVEAL_LINK_CLASS;
-    link.textContent = "Show media";
+    link.textContent = browser.i18n.getMessage("showMedia");
     link.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();

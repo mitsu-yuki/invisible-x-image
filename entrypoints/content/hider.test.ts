@@ -17,8 +17,17 @@ function queryAll(selector: string): Element[] {
   return Array.from(document.querySelectorAll(selector));
 }
 
+const I18N_MESSAGES: Record<string, string> = {
+  showMedia: "Show media",
+};
+
 beforeEach(() => {
   document.body.innerHTML = "";
+  // fakeBrowser's i18n.getMessage throws "not implemented" by default, so
+  // stub it here with the en messages used across these tests.
+  vi.spyOn(browser.i18n, "getMessage").mockImplementation(
+    (key: string) => I18N_MESSAGES[key] ?? "",
+  );
 });
 
 describe("scanAndHide", () => {
@@ -192,6 +201,22 @@ describe("scanAndHide", () => {
     hider.scanAndHide(document.body);
 
     expect(document.querySelectorAll(`.${REVEAL_LINK_CLASS}`)).toHaveLength(1);
+  });
+
+  it("localizes the reveal link text via browser.i18n.getMessage", () => {
+    document.body.innerHTML = `
+      <article data-testid="tweet">
+        <div data-testid="tweetText">Post text</div>
+        <div data-testid="tweetPhoto"></div>
+      </article>
+    `;
+    const getMessageSpy = vi.spyOn(browser.i18n, "getMessage");
+    const hider = createMediaHider(() => makeSettings());
+    hider.scanAndHide(document.body);
+
+    expect(getMessageSpy).toHaveBeenCalledWith("showMedia");
+    const link = query(`.${REVEAL_LINK_CLASS}`) as HTMLAnchorElement;
+    expect(link.textContent).toBe("Show media");
   });
 
   it("calls video.pause() when a video is folded", () => {

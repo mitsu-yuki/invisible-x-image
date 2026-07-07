@@ -1,0 +1,14 @@
+{
+  "extDescription": {
+    "message": "Collapses images and videos in posts on x.com, with a 'Show media' link to reveal them per post."
+  },
+  "showMedia": {
+    "message": "Show media"
+  },
+  "hideImages": {
+    "message": "Hide images"
+  },
+  "hideVideos": {
+    "message": "Hide videos"
+  }
+}

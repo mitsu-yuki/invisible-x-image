@@ -1,0 +1,14 @@
+{
+  "extDescription": {
+    "message": "x.com のポスト内の画像・動画を折りたたみ、ポストごとの「メディアを表示」リンクで表示できる拡張機能。"
+  },
+  "showMedia": {
+    "message": "メディアを表示"
+  },
+  "hideImages": {
+    "message": "画像を隠す"
+  },
+  "hideVideos": {
+    "message": "動画を隠す"
+  }
+}
