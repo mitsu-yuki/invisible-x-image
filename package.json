@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Chrome extension that replaces images and videos on x.com with placeholders",
   "private": true,
+  "license": "(MIT OR Beerware)",
   "type": "module",
   "packageManager": "pnpm@11.10.0",
   "scripts": {

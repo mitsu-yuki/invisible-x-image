@@ -118,3 +118,7 @@ After changing code, run `pnpm run build` again and click "Reload" for the exten
 - host permissions: `https://x.com/*`, `https://twitter.com/*`
 
 No external communication and no remote code loading of any kind.
+
+## License
+
+Dual-licensed under the [MIT License](./LICENSE) or the [Beer-Ware License](./LICENSE-BEERWARE) — use whichever you prefer.

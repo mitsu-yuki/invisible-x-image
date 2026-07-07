@@ -118,3 +118,7 @@ pnpm run dev
 - host permissions: `https://x.com/*`, `https://twitter.com/*`
 
 外部通信・リモートコードの読み込みは一切行いません。
+
+## ライセンス
+
+[MIT License](./LICENSE) と [Beer-Ware License](./LICENSE-BEERWARE) のデュアルライセンスです。好きな方を選んで利用してください。
