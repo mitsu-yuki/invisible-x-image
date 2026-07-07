@@ -2,7 +2,7 @@
 
 [English](./README.md)
 
-x.com（旧 Twitter）のポスト内にある画像・動画を、長文の「さらに表示」と同様の折りたたみ UI で隠す Chrome 拡張機能（Manifest V3）です。折りたたまれたポストの本文右下に表示される「Show media」リンクをクリックすると、そのポストのメディアが 1 クリックですべて表示されます。
+x.com（旧 Twitter）のポスト内にある画像・動画を、長文の「さらに表示」と同様の折りたたみ UI で隠す Chrome 拡張機能（Manifest V3）です。折りたたまれたポストの本文右下に表示される「メディアを表示」リンクをクリックすると、そのポストのメディアが 1 クリックですべて表示されます。UI はブラウザの言語設定に応じて英語/日本語が切り替わります(`chrome.i18n` によるローカライズ)。
 
 詳細な仕様は [docs/requirements-ja.md](./docs/requirements-ja.md) を参照してください。
 
@@ -86,6 +86,10 @@ pnpm run dev
 ├── docs/
 │   ├── requirements.md    # 要件書（英語）
 │   └── requirements-ja.md # 要件書（日本語）
+├── public/
+│   └── _locales/          # chrome.i18n のメッセージバンドル（en, ja）
+│       ├── en/messages.json
+│       └── ja/messages.json
 ├── wxt.config.ts          # manifest 定義
 ├── vitest.config.ts       # テスト設定（WxtVitest + happy-dom）
 ├── entrypoints/

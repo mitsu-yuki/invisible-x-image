@@ -16,7 +16,7 @@ Media is hidden using a folding UI similar to the "Show more" used for long post
 
 - **FR-1**: Images contained within a post (`article[data-testid="tweet"]`) must be folded (the media area is collapsed and hidden).
 - **FR-2**: Videos (including GIFs) contained within a post must be folded the same way.
-- **FR-3**: A post with folded media must show exactly **one** "Show media" link text at the **bottom-right of the post text**. The label is fixed as "Show media" so it's distinguishable from the long-text fold ("Show more"). For media-only posts with no post text (`div[data-testid="tweetText"]`), the link is shown right-aligned where the media used to be.
+- **FR-3**: A post with folded media must show exactly **one** "Show media" link text at the **bottom-right of the post text**. The label is localized via `chrome.i18n` (en: "Show media" / ja: 「メディアを表示」), fixed per locale so it's distinguishable from the long-text fold ("Show more"). If a message is missing for the browser's UI locale, it falls back to `default_locale` (English). For media-only posts with no post text (`div[data-testid="tweetText"]`), the link is shown right-aligned where the media used to be.
 - **FR-4**: Clicking the link must **directly reveal all of that post's folded media** (a single click, with no intermediate state such as a placeholder). The link disappears after revealing. Reloading the page may fold the media again.
 - **FR-5**: While folded, the media area's height must be collapsed so the post displays compactly (an intentional layout reduction). The original layout must be restored when expanded.
 - **FR-6**: Clicking the link must not trigger parent element events such as navigating to the post detail page (`stopPropagation` / `preventDefault`).
@@ -43,7 +43,7 @@ Media is hidden using a folding UI similar to the "Show more" used for long post
 ### 2.4 Settings (popup UI)
 
 - **FR-14**: Clicking the toolbar extension icon must show a popup.
-- **FR-15**: The popup must provide two toggles (checkboxes): "Hide images" and "Hide videos". The UI is in English.
+- **FR-15**: The popup must provide two toggles (checkboxes): "Hide images" and "Hide videos". These labels are localized via `chrome.i18n` as well, so the UI is in English or Japanese depending on the browser's language, falling back to English when a locale isn't provided.
 - **FR-16**: Settings must be stored in `chrome.storage.sync`. Keys and defaults:
 
   ```ts
@@ -119,6 +119,10 @@ Notes:
 ├── docs/
 │   ├── requirements.md    # This document
 │   └── requirements-ja.md # Japanese version
+├── public/
+│   └── _locales/          # chrome.i18n message bundles, copied as-is to the build output
+│       ├── en/messages.json
+│       └── ja/messages.json
 ├── wxt.config.ts          # manifest definition
 ├── vitest.config.ts       # Test config (WxtVitest + happy-dom)
 ├── entrypoints/
@@ -140,8 +144,9 @@ Notes:
 ### Manifest requirements
 
 - `name`: "Invisible X Image"
-- `description`: an English description of the extension's functionality
-- `default_locale` is not required (the popup's text can be written directly)
+- `description`: `"__MSG_extDescription__"`, resolved via `_locales/<locale>/messages.json` (en/ja)
+- `default_locale`: `"en"` (English is the fallback when the browser's UI locale has no matching bundle)
+- `_locales/en/` and `_locales/ja/` provide the `extDescription`, `showMedia`, `hideImages`, and `hideVideos` messages, consumed at runtime via `browser.i18n.getMessage(...)`
 - content script: `matches: ["https://x.com/*", "https://twitter.com/*"]`, `run_at: "document_idle"`
 
 ## 7. Acceptance criteria

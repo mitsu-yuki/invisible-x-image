@@ -2,7 +2,7 @@
 
 [日本語](./README-ja.md)
 
-A Chrome extension (Manifest V3) that hides images and videos in posts on x.com (formerly Twitter) using a folding UI similar to the "Show more" for long text. Clicking the "Show media" link that appears at the bottom-right of a folded post's text reveals all of that post's media in one click.
+A Chrome extension (Manifest V3) that hides images and videos in posts on x.com (formerly Twitter) using a folding UI similar to the "Show more" for long text. Clicking the "Show media" link that appears at the bottom-right of a folded post's text reveals all of that post's media in one click. The UI switches between English and Japanese depending on the browser's language setting (via `chrome.i18n`).
 
 See [docs/requirements.md](./docs/requirements.md) for the full specification.
 
@@ -86,6 +86,10 @@ After changing code, run `pnpm run build` again and click "Reload" for the exten
 ├── docs/
 │   ├── requirements.md    # Requirements document (English)
 │   └── requirements-ja.md # Requirements document (Japanese)
+├── public/
+│   └── _locales/          # chrome.i18n message bundles (en, ja)
+│       ├── en/messages.json
+│       └── ja/messages.json
 ├── wxt.config.ts          # manifest definition
 ├── vitest.config.ts       # Test config (WxtVitest + happy-dom)
 ├── entrypoints/
