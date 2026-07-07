@@ -6,13 +6,15 @@
 
 export const TWEET_ROOT_SELECTOR = 'article[data-testid="tweet"]';
 
+export const TWEET_TEXT_SELECTOR = 'div[data-testid="tweetText"]';
+
 export const PHOTO_SELECTOR = 'div[data-testid="tweetPhoto"]';
 
 export const VIDEO_COMPONENT_SELECTOR = 'div[data-testid="videoComponent"]';
 
 export const VIDEO_PLAYER_SELECTOR = 'div[data-testid="videoPlayer"]';
 
-/** プレースホルダー化の対象となりうるメディアコンテナ全般のセレクタ */
+/** 折りたたみの対象となりうるメディアコンテナ全般のセレクタ */
 export const MEDIA_CONTAINER_SELECTOR = [
   PHOTO_SELECTOR,
   VIDEO_COMPONENT_SELECTOR,

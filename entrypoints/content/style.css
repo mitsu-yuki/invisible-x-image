@@ -1,31 +1,16 @@
-.ixi-hidden > *:not(.ixi-overlay) {
-  visibility: hidden !important;
+.ixi-hidden {
+  display: none !important;
 }
 
-.ixi-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #333;
-  visibility: visible;
-}
-
-.ixi-overlay-button {
-  border: none;
-  border-radius: 9999px;
-  padding: 8px 20px;
+.ixi-reveal-link {
+  display: block;
+  text-align: right;
+  color: #1d9bf0;
   font-size: 14px;
-  font-weight: 700;
-  line-height: 1.4;
-  color: #fff;
-  background-color: rgba(255, 255, 255, 0.16);
+  text-decoration: none;
   cursor: pointer;
-  visibility: visible;
 }
 
-.ixi-overlay-button:hover {
-  background-color: rgba(255, 255, 255, 0.28);
+.ixi-reveal-link:hover {
+  text-decoration: underline;
 }

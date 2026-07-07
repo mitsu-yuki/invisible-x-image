@@ -3,17 +3,18 @@ import {
   MEDIA_KIND_ATTR,
   PROCESSED_ATTR,
   REVEALED_ATTR,
+  TWEET_ROOT_SELECTOR,
+  TWEET_TEXT_SELECTOR,
   detectMediaKind,
   type MediaKind,
 } from "../../utils/selectors";
 import type { Settings } from "../../utils/settings";
 
 export const HIDDEN_CLASS = "ixi-hidden";
-export const OVERLAY_CLASS = "ixi-overlay";
-export const BUTTON_CLASS = "ixi-overlay-button";
+export const REVEAL_LINK_CLASS = "ixi-reveal-link";
 
 /**
- * プレースホルダー化のロジック本体。現在の設定は毎回 getSettings() で
+ * フォールディング(折りたたみ)ロジック本体。現在の設定は毎回 getSettings() で
  * 取得するため、呼び出し側で設定が変わっても作り直す必要はない。
  */
 export function createMediaHider(getSettings: () => Settings) {
@@ -27,13 +28,14 @@ export function createMediaHider(getSettings: () => Settings) {
 
     const all = Array.from(candidates);
     // 入れ子になった候補（videoPlayer > videoComponent など）は
-    // 最も内側の要素だけを残し、二重にプレースホルダー化しない。
+    // 最も内側の要素だけを残し、二重に折りたたまない。
     return all.filter((el) => !all.some((other) => other !== el && el.contains(other)));
   }
 
   function scanAndHide(root: Element) {
     const settings = getSettings();
     const containers = collectMediaContainers(root);
+    const affectedPosts = new Set<Element>();
 
     for (const container of containers) {
       if (container.hasAttribute(PROCESSED_ATTR)) continue;
@@ -41,29 +43,28 @@ export function createMediaHider(getSettings: () => Settings) {
       // videoComponent が追加されるケース）は祖先側に従い二重処理しない。
       if (container.parentElement?.closest(`[${PROCESSED_ATTR}]`)) continue;
 
+      // ポスト（article[data-testid="tweet"]）の外に現れるメディアは対象外。
+      const post = container.closest(TWEET_ROOT_SELECTOR);
+      if (!post) continue;
+
       const kind = detectMediaKind(container);
-      const shouldHide = kind === "image" ? settings.hideImages : settings.hideVideos;
-
       container.setAttribute(MEDIA_KIND_ATTR, kind);
+      container.setAttribute(PROCESSED_ATTR, "true");
 
-      if (!shouldHide) {
-        container.setAttribute(PROCESSED_ATTR, "true");
-        continue;
-      }
+      const shouldHide = kind === "image" ? settings.hideImages : settings.hideVideos;
+      if (!shouldHide) continue;
 
-      applyPlaceholder(container, kind);
+      hideContainer(container);
+      affectedPosts.add(post);
+    }
+
+    for (const post of affectedPosts) {
+      ensureRevealLink(post);
     }
   }
 
-  function applyPlaceholder(container: Element, kind: MediaKind) {
-    container.setAttribute(PROCESSED_ATTR, "true");
-    container.setAttribute(MEDIA_KIND_ATTR, kind);
-
+  function hideContainer(container: Element) {
     const el = container as HTMLElement;
-    if (getComputedStyle(el).position === "static") {
-      el.style.position = "relative";
-    }
-
     el.classList.add(HIDDEN_CLASS);
 
     for (const video of Array.from(el.querySelectorAll("video"))) {
@@ -71,27 +72,12 @@ export function createMediaHider(getSettings: () => Settings) {
       video.muted = true;
     }
     el.addEventListener("play", handleVideoResume, true);
+  }
 
-    const overlay = document.createElement("div");
-    overlay.className = OVERLAY_CLASS;
-
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = BUTTON_CLASS;
-    button.textContent = kind === "image" ? "画像を表示" : "動画を表示";
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      revealMedia(container);
-    });
-
-    overlay.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-    });
-
-    overlay.appendChild(button);
-    el.appendChild(overlay);
+  function unhideContainer(container: Element) {
+    const el = container as HTMLElement;
+    el.classList.remove(HIDDEN_CLASS);
+    el.removeEventListener("play", handleVideoResume, true);
   }
 
   function handleVideoResume(event: Event) {
@@ -101,40 +87,82 @@ export function createMediaHider(getSettings: () => Settings) {
     }
   }
 
-  function removePlaceholder(container: Element) {
-    const el = container as HTMLElement;
-    el.classList.remove(HIDDEN_CLASS);
-    el.removeEventListener("play", handleVideoResume, true);
-
-    const overlay = el.querySelector(`.${OVERLAY_CLASS}`);
-    overlay?.remove();
+  function foldedContainersInPost(post: Element): Element[] {
+    return Array.from(post.querySelectorAll(`.${HIDDEN_CLASS}`));
   }
 
-  function revealMedia(container: Element) {
-    removePlaceholder(container);
-    container.setAttribute(REVEALED_ATTR, "true");
+  function ensureRevealLink(post: Element) {
+    if (post.querySelector(`.${REVEAL_LINK_CLASS}`)) return;
+    const folded = foldedContainersInPost(post);
+    if (folded.length === 0) return;
+
+    const link = createRevealLink(post);
+    const tweetText = post.querySelector(TWEET_TEXT_SELECTOR);
+
+    if (tweetText) {
+      tweetText.insertAdjacentElement("afterend", link);
+      return;
+    }
+
+    const firstFolded = folded[0];
+    firstFolded.parentElement?.insertBefore(link, firstFolded);
+  }
+
+  function createRevealLink(post: Element): HTMLAnchorElement {
+    const link = document.createElement("a");
+    link.href = "#";
+    link.className = REVEAL_LINK_CLASS;
+    link.textContent = "メディアを表示";
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      revealPost(post);
+    });
+    return link;
+  }
+
+  function revealPost(post: Element) {
+    for (const container of foldedContainersInPost(post)) {
+      unhideContainer(container);
+      container.setAttribute(REVEALED_ATTR, "true");
+    }
+    post.querySelector(`.${REVEAL_LINK_CLASS}`)?.remove();
   }
 
   function handleToggle(kind: MediaKind, enabled: boolean) {
     const elements = document.querySelectorAll(`[${MEDIA_KIND_ATTR}="${kind}"]`);
+    const affectedPosts = new Set<Element>();
 
-    if (enabled) {
-      elements.forEach((el) => {
+    elements.forEach((el) => {
+      const post = el.closest(TWEET_ROOT_SELECTOR);
+      if (post) affectedPosts.add(post);
+
+      if (enabled) {
         el.removeAttribute(PROCESSED_ATTR);
         el.removeAttribute(REVEALED_ATTR);
-      });
+      } else if (el.classList.contains(HIDDEN_CLASS)) {
+        unhideContainer(el);
+      }
+    });
+
+    if (enabled) {
+      // 再折りたたみ時にリンクを重複させないよう、対象ポストの既存リンクは
+      // 一旦取り除いてから再走査する。
+      affectedPosts.forEach((post) => post.querySelector(`.${REVEAL_LINK_CLASS}`)?.remove());
       scanAndHide(document.body);
     } else {
-      elements.forEach((el) => removePlaceholder(el));
+      affectedPosts.forEach((post) => {
+        if (foldedContainersInPost(post).length === 0) {
+          post.querySelector(`.${REVEAL_LINK_CLASS}`)?.remove();
+        }
+      });
     }
   }
 
   return {
     collectMediaContainers,
     scanAndHide,
-    applyPlaceholder,
-    removePlaceholder,
-    revealMedia,
+    revealPost,
     handleToggle,
   };
 }
