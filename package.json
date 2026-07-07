@@ -1,7 +1,7 @@
 {
   "name": "invisible-x-image",
   "version": "1.1.0",
-  "description": "Chrome extension that replaces images and videos on x.com with placeholders",
+  "description": "Chrome extension that folds images and videos in posts on x.com",
   "private": true,
   "license": "(MIT OR Beerware)",
   "type": "module",
