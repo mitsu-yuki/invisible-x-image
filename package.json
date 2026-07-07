@@ -1,7 +1,7 @@
 {
   "name": "invisible-x-image",
   "version": "1.0.0",
-  "description": "x.com 上の画像・動画をプレースホルダーに置き換える Chrome 拡張機能",
+  "description": "Chrome extension that replaces images and videos on x.com with placeholders",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.10.0",

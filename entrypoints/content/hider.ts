@@ -16,8 +16,8 @@ export const REVEAL_LINK_CLASS = "ixi-reveal-link";
 const EMPTY_SIZER_EXCLUDED_SELECTOR = "img, video, svg, iframe";
 
 /**
- * フォールディング(折りたたみ)ロジック本体。現在の設定は毎回 getSettings() で
- * 取得するため、呼び出し側で設定が変わっても作り直す必要はない。
+ * Core folding logic. The current settings are fetched via getSettings() on
+ * every call, so callers don't need to recreate this when settings change.
  */
 export function createMediaHider(getSettings: () => Settings) {
   function collectMediaContainers(root: Element): Element[] {
@@ -29,25 +29,27 @@ export function createMediaHider(getSettings: () => Settings) {
     root.querySelectorAll(MEDIA_CONTAINER_SELECTOR).forEach((el) => candidates.add(el));
 
     const all = Array.from(candidates);
-    // 入れ子になった候補（videoPlayer > videoComponent など）は
-    // 最も内側の要素だけを残し、二重に折りたたまない。
+    // For nested candidates (e.g. videoPlayer > videoComponent), keep only
+    // the innermost element so we don't fold the same media twice.
     return all.filter((el) => !all.some((other) => other !== el && el.contains(other)));
   }
 
-  // 空サイザー: テキストを持たず、img/video/svg/iframe も子孫に持たない要素。
+  // Empty sizer: an element with no text and no img/video/svg/iframe descendants.
   function isEmptySizer(el: Element): boolean {
     if ((el.textContent ?? "").trim() !== "") return false;
     return el.querySelector(EMPTY_SIZER_EXCLUDED_SELECTOR) === null;
   }
 
-  // fold root への引き上げ判定で、親のある子が「登ってよい子」かどうか。
+  // When deciding whether to raise the fold target, is this child of the
+  // parent one we're allowed to climb past?
   function isFoldableChild(child: Element): boolean {
     if (child.matches(MEDIA_CONTAINER_SELECTOR)) return true;
     if (child.querySelector(MEDIA_CONTAINER_SELECTOR)) return true;
     return isEmptySizer(child);
   }
 
-  // メディアコンテナから祖先方向に「メディアしか含まないラッパー」の最上位まで登る。
+  // From a media container, climb up through ancestor "media-only wrapper"
+  // elements to the topmost one.
   function findFoldRoot(container: Element, post: Element): Element {
     let current: Element = container;
 
@@ -64,8 +66,8 @@ export function createMediaHider(getSettings: () => Settings) {
     return current;
   }
 
-  // fold root 候補配下に「現在の設定で隠すべきでない」メディアが混在する場合は
-  // 引き上げをやめ、container 自身を折りたたみ対象とする。
+  // If the fold root candidate contains media that shouldn't be hidden under
+  // the current settings, don't raise the target — fold container itself.
   function determineFoldTarget(container: Element, post: Element, settings: Settings): Element {
     const candidate = findFoldRoot(container, post);
     if (candidate === container) return candidate;
@@ -86,11 +88,12 @@ export function createMediaHider(getSettings: () => Settings) {
 
     for (const container of containers) {
       if (container.hasAttribute(PROCESSED_ATTR)) continue;
-      // 祖先が別バッチで処理済みの場合（videoPlayer 処理後に内側の
-      // videoComponent が追加されるケース）は祖先側に従い二重処理しない。
+      // If an ancestor was already processed in a different batch (e.g. a
+      // videoComponent added inside an already-processed videoPlayer),
+      // defer to the ancestor and skip processing this one twice.
       if (container.parentElement?.closest(`[${PROCESSED_ATTR}]`)) continue;
 
-      // ポスト（article[data-testid="tweet"]）の外に現れるメディアは対象外。
+      // Media outside of a post (article[data-testid="tweet"]) is out of scope.
       const post = container.closest(TWEET_ROOT_SELECTOR);
       if (!post) continue;
 
@@ -104,8 +107,8 @@ export function createMediaHider(getSettings: () => Settings) {
       affectedPosts.add(post);
 
       const foldTarget = determineFoldTarget(container, post, settings);
-      // 画像グリッドなど複数コンテナが同一 fold root に集約される場合、
-      // 既に別コンテナの処理で折りたたみ済みなら二重適用しない。
+      // When multiple containers (e.g. an image grid) share the same fold
+      // root, don't apply it twice if another container already folded it.
       if (foldTarget.classList.contains(HIDDEN_CLASS)) continue;
 
       hideContainer(foldTarget);
@@ -165,7 +168,7 @@ export function createMediaHider(getSettings: () => Settings) {
     const link = document.createElement("a");
     link.href = "#";
     link.className = REVEAL_LINK_CLASS;
-    link.textContent = "メディアを表示";
+    link.textContent = "Show media";
     link.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -187,8 +190,9 @@ export function createMediaHider(getSettings: () => Settings) {
     post.querySelector(`.${REVEAL_LINK_CLASS}`)?.remove();
   }
 
-  // トグル切替時は影響ポストのメディア状態を一旦リセットし、現在の設定で
-  // scanAndHide に再構築させる（fold root の組み替えが必要になるため）。
+  // On toggle, reset the affected posts' media state first and let
+  // scanAndHide rebuild it under the current settings (the fold root may
+  // need to be recomputed).
   function resetPostMedia(post: Element) {
     for (const foldRoot of foldedContainersInPost(post)) {
       unhideContainer(foldRoot);

@@ -1,7 +1,7 @@
 /**
- * X (x.com / twitter.com) の DOM セレクタ定数。
- * X のクラス名は難読化され不安定なため data-testid のみを使用する。
- * X 側の DOM 変更時はここだけを追従すればよいように一元管理する。
+ * DOM selector constants for X (x.com / twitter.com).
+ * X's class names are obfuscated and unstable, so only data-testid is used.
+ * Kept in one place so DOM changes on X's side only need to be tracked here.
  */
 
 export const TWEET_ROOT_SELECTOR = 'article[data-testid="tweet"]';
@@ -14,7 +14,7 @@ export const VIDEO_COMPONENT_SELECTOR = 'div[data-testid="videoComponent"]';
 
 export const VIDEO_PLAYER_SELECTOR = 'div[data-testid="videoPlayer"]';
 
-/** 折りたたみの対象となりうるメディアコンテナ全般のセレクタ */
+/** Selector matching any media container that may be a folding target */
 export const MEDIA_CONTAINER_SELECTOR = [
   PHOTO_SELECTOR,
   VIDEO_COMPONENT_SELECTOR,
@@ -28,9 +28,9 @@ export const MEDIA_KIND_ATTR = "data-ixi-kind";
 export type MediaKind = "image" | "video";
 
 /**
- * tweetPhoto は動画のサムネイルにも使われるため、コンテナ自身または
- * videoPlayer 祖先の配下に video 要素 / videoComponent が存在するかどうかで
- * 画像か動画かを判別する。
+ * tweetPhoto is also used for video thumbnails, so we distinguish image
+ * from video by checking whether a video element / videoComponent exists
+ * inside the container itself, or under an ancestor videoPlayer.
  */
 export function detectMediaKind(container: Element): MediaKind {
   if (container.matches(VIDEO_COMPONENT_SELECTOR)) {

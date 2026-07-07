@@ -24,9 +24,9 @@ export async function setSetting<K extends keyof Settings>(
 }
 
 /**
- * browser.storage.sync の変更を購読する。コールバックには変更後の完全な
- * Settings と、どのキーが変わったかの diff を渡す。
- * 戻り値の関数を呼ぶと購読解除できる。
+ * Subscribes to changes on browser.storage.sync. The callback receives the
+ * full updated Settings plus a diff of which keys changed.
+ * Call the returned function to unsubscribe.
  */
 export function onSettingsChanged(
   callback: (settings: Settings, changedKeys: Partial<Record<keyof Settings, boolean>>) => void,

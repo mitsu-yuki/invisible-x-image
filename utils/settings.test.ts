@@ -7,14 +7,14 @@ beforeEach(() => {
 });
 
 describe("getSettings", () => {
-  it("未保存時はデフォルト設定(両方 true)を返す", async () => {
+  it("returns default settings (both true) when nothing is stored", async () => {
     const settings = await getSettings();
     expect(settings).toEqual(DEFAULT_SETTINGS);
   });
 });
 
 describe("setSetting", () => {
-  it("setSetting で書き込んだ値が getSettings で読み出せる", async () => {
+  it("reads back via getSettings the value written by setSetting", async () => {
     await setSetting("hideImages", false);
     const settings = await getSettings();
     expect(settings).toEqual({ hideImages: false, hideVideos: true });
@@ -22,7 +22,7 @@ describe("setSetting", () => {
 });
 
 describe("onSettingsChanged", () => {
-  it("変更されたキーの diff 付きでコールバックが発火する", async () => {
+  it("fires the callback with a diff of the changed keys", async () => {
     const callback = vi.fn();
     onSettingsChanged(callback);
 
@@ -35,13 +35,13 @@ describe("onSettingsChanged", () => {
     );
   });
 
-  it("戻り値の関数で購読解除できる", async () => {
+  it("can unsubscribe via the returned function", async () => {
     const callback = vi.fn();
     const unsubscribe = onSettingsChanged(callback);
     unsubscribe();
 
     await setSetting("hideVideos", false);
-    // マイクロタスクが残っていないことを確認するため一呼吸置く
+    // Pause briefly to confirm no pending microtasks fire the callback
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(callback).not.toHaveBeenCalled();

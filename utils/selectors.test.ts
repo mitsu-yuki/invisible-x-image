@@ -10,17 +10,17 @@ function fromHTML(html: string): Element {
 }
 
 describe("detectMediaKind", () => {
-  it("素の tweetPhoto は image と判定する", () => {
+  it("detects a plain tweetPhoto as image", () => {
     const el = fromHTML(`<div data-testid="tweetPhoto"></div>`);
     expect(detectMediaKind(el)).toBe("image");
   });
 
-  it("video 要素を内包する tweetPhoto は video と判定する", () => {
+  it("detects a tweetPhoto containing a video element as video", () => {
     const el = fromHTML(`<div data-testid="tweetPhoto"><video></video></div>`);
     expect(detectMediaKind(el)).toBe("video");
   });
 
-  it("videoPlayer 祖先の配下にある tweetPhoto(動画サムネイル)は video と判定する", () => {
+  it("detects a tweetPhoto (video thumbnail) under a videoPlayer ancestor as video", () => {
     const root = fromHTML(
       `<div data-testid="videoPlayer"><div data-testid="tweetPhoto"></div></div>`,
     );
@@ -29,12 +29,12 @@ describe("detectMediaKind", () => {
     expect(detectMediaKind(photo)).toBe("video");
   });
 
-  it("videoComponent 自身は video と判定する", () => {
+  it("detects videoComponent itself as video", () => {
     const el = fromHTML(`<div data-testid="videoComponent"></div>`);
     expect(detectMediaKind(el)).toBe("video");
   });
 
-  it("videoPlayer 自身は video と判定する", () => {
+  it("detects videoPlayer itself as video", () => {
     const el = fromHTML(`<div data-testid="videoPlayer"></div>`);
     expect(detectMediaKind(el)).toBe("video");
   });

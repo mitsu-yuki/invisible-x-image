@@ -22,10 +22,10 @@ beforeEach(() => {
 });
 
 describe("scanAndHide", () => {
-  it("ポスト内の tweetPhoto を折りたたみ、tweetText 直後に「メディアを表示」リンクを1つ挿入する", () => {
+  it("folds a tweetPhoto inside a post and inserts one 'Show media' link right after tweetText", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
-        <div data-testid="tweetText">本文</div>
+        <div data-testid="tweetText">Post text</div>
         <div data-testid="tweetPhoto"></div>
       </article>
     `;
@@ -44,7 +44,7 @@ describe("scanAndHide", () => {
     expect(tweetText.nextElementSibling).toBe(links[0]);
   });
 
-  it("ポスト(article)外のメディアは処理されない", () => {
+  it("does not process media outside of a post (article)", () => {
     document.body.innerHTML = `<div data-testid="tweetPhoto"></div>`;
     const hider = createMediaHider(() => makeSettings());
     hider.scanAndHide(document.body);
@@ -55,7 +55,7 @@ describe("scanAndHide", () => {
     expect(document.querySelectorAll(`.${REVEAL_LINK_CLASS}`)).toHaveLength(0);
   });
 
-  it("本文がないポストではメディアがあった位置にリンクが入る", () => {
+  it("inserts the link where the media was for posts with no post text", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
         <div data-testid="tweetPhoto"></div>
@@ -69,10 +69,10 @@ describe("scanAndHide", () => {
     expect(photo.previousElementSibling).toBe(link);
   });
 
-  it("画像2枚+動画1つが混在してもリンクは1つ。クリックで全部展開されリンクが消え revealed が付く", () => {
+  it("shows only one link for a mix of 2 images + 1 video; clicking reveals all of them, removes the link, and marks them revealed", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
-        <div data-testid="tweetText">本文</div>
+        <div data-testid="tweetText">Post text</div>
         <div data-testid="tweetPhoto" id="p1"></div>
         <div data-testid="tweetPhoto" id="p2"></div>
         <div data-testid="videoComponent" id="v1"><video></video></div>
@@ -102,10 +102,10 @@ describe("scanAndHide", () => {
     expect(document.querySelectorAll(`.${REVEAL_LINK_CLASS}`)).toHaveLength(0);
   });
 
-  it("リンククリックが親要素に伝播しない", () => {
+  it("does not let the link click propagate to parent elements", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
-        <div data-testid="tweetText">本文</div>
+        <div data-testid="tweetText">Post text</div>
         <div data-testid="tweetPhoto"></div>
       </article>
     `;
@@ -121,10 +121,10 @@ describe("scanAndHide", () => {
     expect(parentListener).not.toHaveBeenCalled();
   });
 
-  it("hideImages: false のとき画像は折りたたまれない(動画のみ折りたたみでもリンクは出る)", () => {
+  it("does not fold images when hideImages is false (link still appears if only video is folded)", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
-        <div data-testid="tweetText">本文</div>
+        <div data-testid="tweetText">Post text</div>
         <div data-testid="tweetPhoto" id="p1"></div>
         <div data-testid="videoComponent" id="v1"><video></video></div>
       </article>
@@ -139,7 +139,7 @@ describe("scanAndHide", () => {
     expect(queryAll(`.${REVEAL_LINK_CLASS}`)).toHaveLength(1);
   });
 
-  it("videoPlayer > videoComponent の入れ子では判定は最も内側の要素で行われるが、折りたたみは videoPlayer(fold root)へ引き上げられる", () => {
+  it("for nested videoPlayer > videoComponent, detection uses the innermost element but folding is raised to videoPlayer (the fold root)", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
         <div data-testid="videoPlayer">
@@ -159,7 +159,7 @@ describe("scanAndHide", () => {
     expect(component.classList.contains(HIDDEN_CLASS)).toBe(false);
   });
 
-  it("祖先が処理済みの場合、後から追加された内側の要素は処理されない", () => {
+  it("does not process an inner element added later if its ancestor was already processed", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
         <div data-testid="videoPlayer"></div>
@@ -179,10 +179,10 @@ describe("scanAndHide", () => {
     expect(component.classList.contains(HIDDEN_CLASS)).toBe(false);
   });
 
-  it("二重に走査してもリンクは重複しない", () => {
+  it("does not duplicate the link when scanning twice", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
-        <div data-testid="tweetText">本文</div>
+        <div data-testid="tweetText">Post text</div>
         <div data-testid="tweetPhoto"></div>
       </article>
     `;
@@ -194,7 +194,7 @@ describe("scanAndHide", () => {
     expect(document.querySelectorAll(`.${REVEAL_LINK_CLASS}`)).toHaveLength(1);
   });
 
-  it("動画折りたたみ時に video.pause() が呼ばれる", () => {
+  it("calls video.pause() when a video is folded", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
         <div data-testid="videoComponent">
@@ -211,11 +211,11 @@ describe("scanAndHide", () => {
   });
 });
 
-describe("fold root への引き上げ", () => {
-  it("サイザー(空div)+コンテンツ div の兄弟構造を持つラッパーは、ラッパーごと折りたたまれサイザーも消える", () => {
+describe("raising to the fold root", () => {
+  it("folds the whole wrapper (sizer included) for a wrapper with a sizer (empty div) + content div sibling structure", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
-        <div data-testid="tweetText">本文</div>
+        <div data-testid="tweetText">Post text</div>
         <div class="wrapper">
           <div class="sizer"></div>
           <div class="content">
@@ -231,16 +231,16 @@ describe("fold root への引き上げ", () => {
     const sizer = query(".sizer");
     const photo = query('[data-testid="tweetPhoto"]');
 
-    // fold root(wrapper)に HIDDEN_CLASS が付き、サイザーごと非表示になる
+    // HIDDEN_CLASS is applied to the fold root (wrapper), hiding the sizer too
     expect(wrapper.classList.contains(HIDDEN_CLASS)).toBe(true);
     expect(photo.classList.contains(HIDDEN_CLASS)).toBe(false);
     expect(wrapper.contains(sizer)).toBe(true);
   });
 
-  it("2枚の画像がグリッド(共通ラッパー)にある場合、fold root が1つ折りたたまれリンクも1つ。クリックで両方表示される", () => {
+  it("folds a single fold root and shows a single link for 2 images in a grid (shared wrapper); clicking reveals both", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
-        <div data-testid="tweetText">本文</div>
+        <div data-testid="tweetText">Post text</div>
         <div class="grid">
           <div data-testid="tweetPhoto" id="p1"></div>
           <div data-testid="tweetPhoto" id="p2"></div>
@@ -268,10 +268,10 @@ describe("fold root への引き上げ", () => {
     expect(post.querySelectorAll(`.${HIDDEN_CLASS}`)).toHaveLength(0);
   });
 
-  it("画像+動画が同一ラッパー配下にあり hideImages: true / hideVideos: false のとき、fold root への引き上げは行われず画像コンテナのみ折りたたまれる", () => {
+  it("does not raise to the fold root when an image and a video share a wrapper with hideImages: true / hideVideos: false — only the image container is folded", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
-        <div data-testid="tweetText">本文</div>
+        <div data-testid="tweetText">Post text</div>
         <div class="mixedWrapper">
           <div data-testid="tweetPhoto" id="p1"></div>
           <div data-testid="videoComponent" id="v1"><video></video></div>
@@ -290,10 +290,10 @@ describe("fold root への引き上げ", () => {
     expect(v1.classList.contains(HIDDEN_CLASS)).toBe(false);
   });
 
-  it("ユーザー名などテキストを含む階層(article 直下など)までは登らない", () => {
+  it("does not climb up to a level containing text such as a username (e.g. directly under article)", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
-        <div data-testid="tweetText">本文</div>
+        <div data-testid="tweetText">Post text</div>
         <div class="row">
           <span class="username">User Name</span>
           <div data-testid="tweetPhoto"></div>
@@ -312,16 +312,16 @@ describe("fold root への引き上げ", () => {
 });
 
 describe("handleToggle", () => {
-  it("OFF で全展開しリンクを除去、ON では revealed 済みも含め再度折りたたみリンクを再挿入する", () => {
+  it("expands everything and removes the link when turned OFF; re-folds (including already-revealed items) and re-inserts the link when turned ON", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
-        <div data-testid="tweetText">本文</div>
+        <div data-testid="tweetText">Post text</div>
         <div data-testid="tweetPhoto" id="p1"></div>
         <div data-testid="tweetPhoto" id="p2"></div>
       </article>
     `;
-    // 実際の呼び出し元(content/index.ts)は handleToggle を呼ぶ前に
-    // 保持している設定を更新するため、テストでも同様に settings を更新してから呼ぶ。
+    // The real caller (content/index.ts) updates its held settings before
+    // calling handleToggle, so update settings here first too, as it would.
     const settings = makeSettings();
     const hider = createMediaHider(() => settings);
     hider.scanAndHide(document.body);
@@ -331,12 +331,12 @@ describe("handleToggle", () => {
     const p2 = query("#p2");
     const kind: MediaKind = "image";
 
-    // p1 はユーザーがリンククリックで個別に表示済みとする想定を再現
+    // Simulate p1 having already been revealed individually via the link click
     hider.revealPost(post);
     expect(p1.getAttribute(REVEALED_ATTR)).toBe("true");
     expect(document.querySelectorAll(`.${REVEAL_LINK_CLASS}`)).toHaveLength(0);
 
-    // 再度折りたたませてから OFF を確認する
+    // Fold again first, then check the OFF behavior
     settings.hideImages = true;
     hider.handleToggle(kind, true);
     expect(p1.classList.contains(HIDDEN_CLASS)).toBe(true);
@@ -359,10 +359,10 @@ describe("handleToggle", () => {
     expect(document.querySelectorAll(`.${REVEAL_LINK_CLASS}`)).toHaveLength(1);
   });
 
-  it("画像+動画混在ポストで画像だけ OFF にすると画像は展開され動画は折りたたまれたまま。リンクは残る", () => {
+  it("in a post with mixed images and video, turning only images OFF expands the images while the video stays folded; the link remains", () => {
     document.body.innerHTML = `
       <article data-testid="tweet">
-        <div data-testid="tweetText">本文</div>
+        <div data-testid="tweetText">Post text</div>
         <div data-testid="tweetPhoto" id="p1"></div>
         <div data-testid="videoComponent" id="v1"><video></video></div>
       </article>
